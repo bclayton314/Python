@@ -1,0 +1,151 @@
+# Author: Clayton Baker
+# Date: 15FEB2021
+# Description: This program can implement a Linked List with a Linked List class
+# and a Node class.  It also has add, remove, contains, insert, reverse, and
+# to_plain_list methods that use recursion for functioning.
+
+
+class Node:
+    """Represents a node in a linked list"""
+    def __init__(self, data):
+        self._data = data
+        self._next = None
+
+    def get_data(self):
+        """Gets data value in the Node"""
+        return self._data
+
+    def set_data(self, data):
+        """Sets the data value in the Node"""
+        self._data = data
+
+    def get_next(self):
+        """Gets the data value next to the Node"""
+        return self._next
+
+    def set_next(self, next):
+        """Sets the data value in the next Node"""
+        self._next = next
+
+
+class LinkedList:
+    """An implementation of a Linked List"""
+    def __init__(self):
+        self._head = None
+
+    def get_head(self):
+        """Returns the Node object that's the head of the linked list"""
+        return self._head
+
+    def rec_display(self, a_node):
+        """Helper method to display recursively"""
+        if a_node is None:
+            return
+        print(a_node.get_data(), end=" ")
+        self.rec_display(a_node.get_next())
+
+    def display(self):
+        """Method that displays recursively"""
+        self.rec_display(self.get_head())
+
+    def rec_add(self, val, a_node):
+        """Helper method to add nodes to a Linked List recursively"""
+        if a_node.get_next() is None:
+            new_node = Node(val)
+            a_node.set_next(new_node)
+        else:
+            self.rec_add(val, a_node.get_next())
+
+    def add(self, val):
+        """Adds a node to a Linked List"""
+        if self._head is None:
+            self._head = Node(val)
+        else:
+            self.rec_add(val, self.get_head())
+
+    def rec_remove(self, val, a_node):
+        """Helper method for removal recursively"""
+        next_node = a_node.get_next()
+        if next_node is None:
+            return
+        elif next_node.get_data() == val:
+            a_node.set_next(next_node.get_next())
+            next_node.set_next(None)
+        else:
+            self.rec_remove(val, a_node.get_next())
+
+    def remove(self, val):
+        """Removes the node containing val from the Linked List"""
+        if self._head is None:
+            return
+        if self._head.get_data() == val:
+            self._head = self._head.get_next()
+        else:
+            self.rec_remove(val, self._head)
+
+    def rec_contains(self, key, a_node):
+        """Helper method for the contains method with recursion"""
+        if a_node is None:
+            return False
+        elif a_node.get_data() == key:
+            return True
+        else:
+            return self.rec_contains(key, a_node.get_next())
+
+    def contains(self, key):
+        """Returns True if the list contains a Node with the value,
+        otherwise returns False"""
+        if self._head is None:
+            return False
+        else:
+            return self.rec_contains(key, self._head)
+
+    def rec_insert(self, val, pos, a_node):
+        """Helper method for insertion recursively"""
+        if a_node is None:
+            raise ValueError("Unable to insert")
+        if pos == 1:
+            temp = a_node.get_next()
+            new_node = Node(val)
+            a_node.set_next(new_node)
+            new_node.set_next(temp)
+        else:
+            self.rec_insert(val, pos - 1, a_node.get_next())
+
+    def insert(self, val, pos):
+        """Inserts a node containing val into the linked list at position pos"""
+        if self._head is None:
+            self.add(val)
+            return
+        if pos == 0:
+            temp = self._head
+            self._head = Node(val)
+            self._head.set_next(temp)
+        else:
+            self.rec_insert(val, pos, self._head)
+
+    def rec_reverse(self, a_node):
+        """Helper method for reversing a Linked List recursively"""
+        if a_node is None or a_node.get_next() is None:
+            return a_node
+        else:
+            following = a_node.get_next()
+            rest = self.rec_reverse(following)
+            following.set_next(a_node)
+            a_node.set_next(None)
+            return rest
+
+    def reverse(self):
+        """"Reverses the linked list"""
+        self._head = self.rec_reverse(self._head)
+
+    def rec_to_plain_list(self, a_node):
+        """Helper method for returning a list from Linked List recursively"""
+        if a_node is None:
+            return []
+        else:
+            return [a_node.get_data()] + self.rec_to_plain_list(a_node.get_next())
+
+    def to_plain_list(self):
+        """Returns a regular list of the values from the linked list"""
+        return self.rec_to_plain_list(self._head)
