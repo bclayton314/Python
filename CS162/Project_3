@@ -1,0 +1,279 @@
+# Author: Clayton Baker
+# Date: 20JAN2021
+# Description: This is a simple Library simulator application.
+# It uses multiple methods and classes in order to study and utilize
+# object-oriented programming principles.
+
+class LibraryItem:
+    """Represents an item for the library"""
+
+    def __init__(self, library_item_id, title):
+        """Creates a library item object"""
+        self._library_item_id = library_item_id
+        self._title = title
+        self._location = "ON_SHELF"
+        self._checked_out_by = None
+        self._requested_by = None
+        self._date_checked_out = None
+
+    def get_library_item_id(self):
+        """Returns the library item id"""
+        return self._library_item_id
+
+    def get_title(self):
+        """Returns the library item title"""
+        return self._title
+
+    def get_location(self):
+        """Returns location of library item"""
+        return self._location
+
+    def set_location(self, location):
+        """Sets location for library item object"""
+        self._location = location
+
+    def get_checked_out_by(self):
+        """Returns who has checked out an item"""
+        return self._checked_out_by
+
+    def set_checked_out_by(self, patron):
+        """Sets checked out by data member for library item object"""
+        self._checked_out_by = patron
+
+    def get_requested_by(self):
+        """Returns who has requested an item"""
+        return self._requested_by
+
+    def set_requested_by(self, patron):
+        """Sets requested by data member for library item object"""
+        self._requested_by = patron
+
+    def get_date_checked_out(self):
+        """Returns date that item was checked out"""
+        return self._date_checked_out
+
+    def set_date_checked_out(self, date):
+        """Sets the date that the item was checked out"""
+        self._date_checked_out = date
+
+class Book(LibraryItem):
+    def __init__(self, library_item_id, title, author):
+        """Creates a book object"""
+        super().__init__(library_item_id, title)
+        self._author = author
+
+    def get_author(self):
+        """Returns author from Book object"""
+        return self._author
+
+    def get_check_out_length(self):
+        """Returns check out length in days for a book"""
+        return 21
+
+class Album(LibraryItem):
+    def __init__(self, library_item_id, title, artist):
+        """Creates an album item"""
+        super().__init__(library_item_id, title)
+        self._artist = artist
+
+    def get_artist(self):
+        """Returns artist from Album object"""
+        return self._artist
+
+    def get_check_out_length(self):
+        """Returns check out length in days for a album"""
+        return 14
+
+class Movie(LibraryItem):
+    def __init__(self, library_item_id, title, director):
+        """Creates a movie item"""
+        super().__init__(library_item_id, title)
+        self._director = director
+
+    def get_director(self):
+        """Returns director from Movie object"""
+        return self._director
+
+    def get_check_out_length(self):
+        """Returns check out length in days for a movie"""
+        return 7
+
+
+class Patron:
+    def __init__(self, patron_id, name):
+        """Creates a Patron object"""
+        self._patron_id = patron_id
+        self._name = name
+        self._checked_out_items = []
+        self._fine_amount = 0
+
+    def get_patron_id(self):
+        """Returns the id for a patron"""
+        return self._patron_id
+
+    def get_name(self):
+        """Returns the name of a patron"""
+        return self._name
+
+    def get_checked_out_items(self):
+        """Returns checked out items from list"""
+        return self._checked_out_items
+
+    def get_fine_amount(self):
+        """Returns the total value for a fine amount in currency format"""
+        return self._fine_amount
+
+    def add_library_item(self, library_item):
+        """Adds an item to the checked_out_items collection"""
+        self._checked_out_items.append(library_item)
+
+    def remove_library_item(self, library_item):
+        """Removes an item from the checked_out_items collection"""
+        self._checked_out_items.remove(library_item)
+
+    def amend_fine(self, fine_amount):
+        """Adds or subtracts from fine_amount"""
+        self._fine_amount += fine_amount
+
+
+class Library:
+    def __init__(self):
+        """Creates a library object"""
+        self._holdings = []
+        self._members = []
+        self._current_date = 0
+
+    def add_library_item(self, library_item):
+        """Adds library item to holdings collection"""
+        self._holdings.append(library_item)
+
+    def add_patron(self, patron):
+        """Adds patron to members collection"""
+        self._members.append(patron)
+
+    def get_library_item_from_id(self, library_item_id):
+        """Returns library item based on id or returns None if no item is present"""
+        for item in self._holdings:
+            if library_item_id == item.get_library_item_id():
+                return item
+        return None
+
+    def get_patron_from_id(self, patron_id):
+        """Returns patron from member collection"""
+        for member in self._members:
+            if patron_id == member.get_patron_id():
+                return member
+        return None
+
+    def check_out_library_item(self, patron_id, library_item_id):
+        """Checks status of library item, checks out item, and updates status of item"""
+        patron = self.get_patron_from_id(patron_id)
+        if patron is None:
+            return "patron not found"
+
+        library_item = self.get_library_item_from_id(library_item_id)
+        if library_item is None:
+            return "item not found"
+
+        if library_item.get_checked_out_by() is not None:
+            return "item already checked out"
+
+        if library_item.get_location() == "ON_HOLD_SHELF" and library_item.get_requested_by() != patron:
+            return "item on hold by other patron"
+        else:
+            library_item.set_checked_out_by(patron)
+            library_item.set_date_checked_out(self._current_date)
+            library_item.set_location("CHECKED_OUT")
+
+        if library_item.get_location() == "ON_HOLD_SHELF" and library_item.get_requested_by() == patron:
+            library_item.set_requested_by(None)
+
+        patron.add_library_item(library_item)
+        return "check out successful"
+
+    def return_library_item(self, library_item_id):
+        """Checks status of library item, updates patron's items, updates location, and updates checked_out_by"""
+        library_item = self.get_library_item_from_id(library_item_id)
+        if library_item is None:
+            return "item not found"
+
+        if library_item.get_location() != "CHECKED_OUT":
+            return "item already in library"
+
+        patron = library_item.get_checked_out_by()
+        patron.remove_library_item(library_item)
+
+        if library_item.get_requested_by() is not None:
+            library_item.set_location("ON_HOLD_SHELF")
+        else:
+            library_item.set_location("ON_SHELF")
+
+        library_item.set_checked_out_by(None)
+        return "return successful"
+
+    def request_library_item(self, patron_id, library_item_id):
+        """Checks status of library item, updates requested_by, updates location"""
+        patron = self.get_patron_from_id(patron_id)
+        if patron is None:
+            return "patron not found"
+
+        library_item = self.get_library_item_from_id(library_item_id)
+        if library_item is None:
+            return "item not found"
+
+        if library_item.get_requested_by() != None:
+            return "item already on hold"
+
+        library_item.set_requested_by(patron)
+
+        if library_item.get_location() == "ON_SHELF":
+            library_item.set_location("ON_HOLD_SHELF")
+
+        return "request successful"
+
+    def pay_fine(self, patron_id, amount_being_paid):
+        """Updates value of fine amount using amend_fine"""
+        patron = self.get_patron_from_id(patron_id)
+        if patron is None:
+            return "patron not found"
+
+        patron.amend_fine(-amount_being_paid)
+        return "payment successful"
+
+    def increment_current_date(self):
+        """Increments current_date and increase fine amount for each increment"""
+        self._current_date += 1
+
+        for patron in self._members:
+            for checked_out_item in patron.get_checked_out_items():
+                date_checked_out = checked_out_item.get_date_checked_out()
+                check_out_length = checked_out_item.get_check_out_length()
+                if date_checked_out + check_out_length < self._current_date:
+                    patron.amend_fine(0.1)
+
+
+# b1 = Book("345", "Phantom Tollbooth", "Juster")
+# a1 = Album("456", "...And His Orchestra", "The Fastbacks")
+# m1 = Movie("567", "Laputa", "Miyazaki")
+# print(b1.get_author())
+# print(a1.get_artist())
+# print(m1.get_director())
+# 
+# p1 = Patron("abc", "Felicity")
+# p2 = Patron("bcd", "Waldo")
+# 
+# lib = Library()
+# lib.add_library_item(b1)
+# lib.add_library_item(a1)
+# lib.add_patron(p1)
+# lib.add_patron(p2)
+# 
+# lib.check_out_library_item("bcd", "456")
+# loc = a1.get_location()
+# lib.request_library_item("abc", "456")
+# for i in range(57):
+#     lib.increment_current_date()  # 57 days pass
+# p2_fine = p2.get_fine_amount()
+# lib.pay_fine("bcd", p2_fine)
+# lib.return_library_item("456")
+# print(p2_fine)
