@@ -1,0 +1,111 @@
+# Author: Clayton Baker
+# Date: 22FEB2021
+# Description: This is a generator function that will produce a sequence indefinitely.
+# The sequence will enumerate how many there are of each digit in the previous term and
+# yield the terms as strings.
+
+
+
+def next_seq(seq):
+    """Helper function to generate string sequence for generator function."""
+    result = ""
+    digit = seq[0]
+    count = 1
+
+    for i in range(1, len(seq)):
+        if seq[i] == digit:
+            count += 1
+        else:
+            result += str(count) + digit
+            digit = seq[i]
+            count = 1
+
+    result += str(count) + digit
+
+    return result
+
+
+def count_seq():
+    """Generator function to produce sequence"""
+    seq = "2"
+    yield seq
+    while True:
+        seq = next_seq(seq)
+        yield seq
+        
+        
+# Author: Clayton Baker
+# Date: 22FEB2021
+# Description: This program uses the time, pyplot, wraps, and random modules.  It uses
+# a decorator function to return the elapsed time when comparing insertion sort and
+# bubble sort.  The program will also plot the results to a graph.
+
+
+import time
+import random
+from matplotlib import pyplot
+from functools import wraps
+
+
+def sort_timer(func):
+    """Decorator function to time how long the decorator function takes to run"""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        begin_time = time.perf_counter()
+        func(*args, **kwargs)
+        end_time = time.perf_counter()
+        elapsed_time = end_time - begin_time
+        return elapsed_time
+
+    return wrapper
+
+
+def compare_sorts(decorated_bubble_sort, decorated_insertion_sort):
+    """Function to generate a list of numbers and then compares the time to sort the list
+    using two different sort types"""
+    data_points = [[], []]
+    list_sizes = list(range(1000, 10001, 1000))  # [1000, 2000, ..., 10000]
+    for list_size in list_sizes:
+        list_1 = []
+        for i in range(list_size):
+            list_1.append(random.randint(1, 10000))
+
+        list_2 = list(list_1)
+
+        elapsed_time_bubble_sort = decorated_bubble_sort(list_1)
+        elapsed_time_insertion_sort = decorated_insertion_sort(list_2)
+
+        data_points[0].append(elapsed_time_bubble_sort)
+        data_points[1].append(elapsed_time_insertion_sort)
+
+    pyplot.plot(list_sizes, data_points[0], 'ro--', linewidth=2)
+    pyplot.plot(list_sizes, data_points[1], 'go--', linewidth=2)
+    pyplot.xlabel("Number of elements being sorted")
+    pyplot.ylabel("Time in seconds")
+    pyplot.show()
+
+
+@sort_timer
+def bubble_sort(a_list):
+    """Sorts a_list in ascending order using bubble sort"""
+    for pass_num in range(len(a_list) - 1):
+        for index in range(len(a_list) - 1 - pass_num):
+            if a_list[index] > a_list[index + 1]:
+                temp = a_list[index]
+                a_list[index] = a_list[index + 1]
+                a_list[index + 1] = temp
+
+
+@sort_timer
+def insertion_sort(a_list):
+    """Sorts a_list in ascending order using insertion sort"""
+    for index in range(1, len(a_list)):
+        value = a_list[index]
+        pos = index - 1
+        while pos >= 0 and a_list[pos] > value:
+            a_list[pos + 1] = a_list[pos]
+            pos -= 1
+        a_list[pos + 1] = value
+
+
+# compare_sorts(bubble_sort, insertion_sort)
