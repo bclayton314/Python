@@ -1,0 +1,45 @@
+# Author: Clayton Baker
+# Date: 11JAN2021
+# Description: A file that contains unit tests for the Store.py application.
+# The 5 test functions test the methods and classes in Store.py using assert functions.
+
+import unittest
+from Store import *
+
+
+class StoreTester(unittest.TestCase):
+    """Contains unit tests for the store application"""
+
+    def test_customer(self):
+        """Test for the is_premium_member() method in Customer class"""
+        customer1 = Customer("Sara", "VFA", True)
+        customer2 = Customer("Joe", "IHE", False)
+        self.assertTrue(customer1.is_premium_member())
+        self.assertFalse(customer2.is_premium_member())
+
+    def test_product_decrease_quantity(self):
+        """Test for multiple methods of the Product class"""
+        product = Product("552", "Product1", "Comments about product1", 22.99, 6)
+        product.decrease_quantity()
+        self.assertEqual(product.get_quantity_available(), 5)
+        self.assertNotEqual(product.get_id(), "500")
+
+    def test_customer_add_product_to_cart(self):
+        """Testing the functionality of the add_product_to_cart method"""
+        customer = Customer("Sara", "VFA", True)
+        customer.add_product_to_cart("111")
+        customer.add_product_to_cart("222")
+        customer.add_product_to_cart("333")
+        self.assertIn("111", customer.get_cart())
+        self.assertNotIn("444", customer.get_cart())
+
+    def test_store_get_product_from_id(self):
+        """Testing get_product_from_id() method with Store class"""
+        store = Store()
+        self.assertIsNone(store.get_product_from_id("111"))
+
+    def test_store_check_out_member(self):
+        """Testing error checking with check_out_member() method from Store class"""
+        store = Store()
+        with self.assertRaises(InvalidCheckoutError):
+            store.check_out_member("111")
