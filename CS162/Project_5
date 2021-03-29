@@ -1,0 +1,195 @@
+# Author: Clayton Baker
+# Date: 30JAN2021
+# Description: This is a small program that takes a text file as a parameter,
+# sums the values in the file and then writes the sum to another text file.
+
+def file_sum(path):
+    with open(path, 'r') as infile:
+        sum = 0
+        for line in infile:
+            num = line.strip()
+            sum += float(num)
+        infile.close()
+    
+    with open('sum.txt', 'w') as outfile:
+        outfile.write(str(sum))
+
+
+# print(file_sum('project5a.txt'))
+
+
+# Author: Clayton Baker
+# Date: 30JAN2021
+# Description: This program reads a JSON file and allows users to search
+# through the data.  Specifically the program will search by using
+# year and category and return a sorted list.
+
+
+import json
+
+
+class NobelData:
+    """Creates the Nobel Data object for """
+    def __init__(self):
+        with open("nobels.json", 'r') as infile:
+            json_data= json.load(infile)
+        self._data = json_data["prizes"]
+        infile.close()
+
+    def search_nobel(self, year, category):
+        """Method for search through the JSON data"""
+        surnames = []
+        for prizes in self._data:
+            if prizes['year'] == year and prizes['category'] == category:
+                winners = prizes["laureates"]
+                for winner in winners:
+                    surnames.append(winner["surname"])
+                return sorted(surnames)
+        return None
+
+# myNobelData = NobelData()
+# mySurnames = myNobelData.search_nobel("2001", "economics")
+# print(mySurnames)
+
+
+# Author: Clayton Baker
+# Date: 30JAN2021
+# Description: This program can read through a JSON file and writes the data
+# to a text file in CSV format. The rows in the CSV file will be sorted
+# in ascending order by the DBN column.
+
+
+import json
+
+
+class SatData:
+    """Initialize an object that can read a JSON file and write the JSON data to a csv file"""
+    def __init__(self):
+        """Reads the JSON data"""
+        with open('sat.json', 'r') as infile:
+            self._sat_data = json.load(infile)
+
+
+    def save_as_csv(self, dbns):
+        """Writes the JSON data to a CSV file after sorting by the DBNs"""
+        with open('output.csv', 'w') as outfile:
+            outfile.write('DBN,School Name,Number of Test Takers,Critical Reading Mean,Mathematics Mean,Writing Mean\n')
+            data = self._sat_data['data']
+            for dbn in dbns:
+                for lst in data:
+                    if lst[8] == dbn:
+                        school_name = lst[9]
+                        if ',' in school_name:
+                            school_name = '"' + school_name + '"'
+                        number_of_test_takers = lst[10]
+                        critical_reading_mean = lst[11]
+                        mathematics_mean = lst[12]
+                        writing_mean = lst[13]
+                        if number_of_test_takers is None:
+                            outfile.write(dbn + ',' + school_name + ',,,,\n' )
+                        else:
+                            outfile.write(dbn + ',' + school_name + ',' + number_of_test_takers +
+                            ',' + critical_reading_mean + ',' + mathematics_mean + ',' + writing_mean + '\n')
+
+
+# sd = SatData()
+# dbns = ["02M303", "02M294", "01M450", "02M418", "03M299", "01M509"]
+# sd.save_as_csv(dbns)
+
+
+# Author: Clayton Baker
+# Date: 3FEB2021
+# Description: This program will save and load data to a JSON file.
+# It can add, delete, and search through pet data using two different classes.
+
+import json
+from json import JSONEncoder
+
+
+class DuplicatedNameException(Exception):
+    """Exception if name already exists"""
+    pass
+
+
+class PetNotFoundException(Exception):
+    """Exception if the pet doesn't exist"""
+    pass
+
+
+class ObjectEncoder(JSONEncoder):
+    """To make Python objects serializable for JSON"""
+    def default(self, o):
+        return o.__dict__
+
+
+class Pet:
+    """Creates a pet object"""
+    def __init__(self, name, species, owner_name):
+        self._name = name
+        self._species = species
+        self._owner_name = owner_name
+
+    def get_owner_name(self):
+        """Returns the pet owner's name"""
+        return self._owner_name
+
+    def get_species(self):
+        """Returns species of the pet"""
+        return self._species
+
+
+class NeighborhoodPets:
+    """Creates a NeighborhoodPets object for adding, deleting, and searching for data"""
+    def __init__(self):
+        """Initializes the pet object"""
+        self._pets = {}
+
+    def add_pet(self, name, species, owner_name):
+        """Adds a pet object to the dictionary"""
+        if name in self._pets:
+            raise DuplicatedNameException
+        self._pets[name] = Pet(name, species, owner_name)
+
+    def delete_pet(self, name):
+        """Deletes pet object from dictionary"""
+        if name in self._pets:
+            del self._pets[name]
+        else:
+            raise PetNotFoundException
+
+    def get_owner(self, pet_name):
+        """Returns pet owner's name"""
+        if pet_name in self._pets:
+            return self._pets[pet_name].get_owner_name()
+        else:
+            raise PetNotFoundException
+
+    def save_as_json(self, file_name):
+        """Saves data to a JSON file"""
+        with open(file_name, 'w') as outfile:
+            json.dump(self._pets, indent=4, cls=ObjectEncoder)
+
+    def read_json(self, file_name):
+        """Reads and loads a JSON file"""
+        with open(file_name, 'r') as infile:
+            self._pets = json.load(infile)
+
+    def get_all_species(self):
+        """Returns a set of all species of the pets"""
+        species_set = set()
+        for pet in self._pets.values():
+            species_set.add(pet.get_species())
+        return species_set
+
+
+# np = NeighborhoodPets()
+# np.add_pet("Fluffy", "gila monster", "Oksana")
+# np.add_pet("Tiny", "stegasaurus", "Rachel")
+# np.add_pet("Spot", "zebra", "Farrokh")
+# np.save_as_json("pets.json")
+# np.delete_pet("Tiny")
+# spot_owner = np.get_owner("Spot")
+# print(spot_owner)
+# np.read_json("pets.json")  # where other_pets.json is a file it saved in some previous session
+# species_set = np.get_all_species()
+# print(species_set)
